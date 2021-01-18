@@ -1,11 +1,15 @@
 
+Canvas.backgroundColor = "222"
+
 # Stack
+
 getStack = (alignment = "vertical", parent = null, sName = "some stack", sWidth = 100, sHeight = 100, padding = 0, offset = 20) ->
 	stackView = new Layer
 		parent: parent
 		width: sWidth
 		height: sHeight
 		name: sName
+		backgroundColor: "null"
 		custom:
 			alignment: alignment
 			padding: padding
@@ -13,18 +17,20 @@ getStack = (alignment = "vertical", parent = null, sName = "some stack", sWidth 
 	
 	stackView.on "change:children", ->
 		if @custom.alignment == "vertical"
-			key = { d: "y", s: "height" }
-		else key = { d: "x", s: "width" }
+			key = { d: "y", s: "height", a: "x" }
+		else key = { d: "x", s: "width", a: "y" }
 		
 		for item, i in @children
 			if i == 0 then item[key.d] = @custom.offset
 			else item[key.d] = @children[i-1][key.d] + @children[i-1][key.s] + @custom.padding
+			
+# 			item[key.a] = Align.center()
 	
 	return stackView
 
+# Panel
 
-
-test = (text = "test") ->
+test = (event, layer, text = "test") ->
 	print text
 
 
@@ -35,61 +41,43 @@ createControlPanel = () ->
 		name: "panels"
 		width: Canvas.width
 		height: Canvas.height
+		backgroundColor: "null"
 	
-	leftPanel = getStack("vertical", panels, "left panel", 200, Canvas.height, 0, 20)
-	rightPanel = getStack("vertical", panels, "right panel", 200, Canvas.height, 0, 20)
+	leftPanel = getStack("vertical", panels, "left panel", 320, Canvas.height, 0, 20)
+	rightPanel = getStack("vertical", panels, "right panel", 320, Canvas.height, 0, 20)
+	rightPanel.x = Align.right()
 
 
-
-# getPanel = (panelType = "left", panelWidth = 200) ->
-# 	panel = new Layer
-# 		parent: Layer.select("panels")
-# 		name: "panel #{panelType}"
-# 		width: panelWidth
-# 		height: Canvas.height
-# 		backgroundColor: "null"
-# 		backgroundColor: "rgba(255,0,0, 0.2)"
-# 	
-# 	print "||||#{panel.name}"
-# 	
-# 	controlStack = new Layer
-# 		parent: panel
-# 		width: panel.width
-# 		height: 0
-# 		backgroundColor: "null"
-# 		backgroundColor: "rgba(0,255,0,.2)"
-# 
-# 	controlStack.on("change:children", stackVertical)
-# 	
-# 	return panel
-
-
-isRow = (side = "left", row = "1") ->
-	rowParent = Layer.select("panel #{side}")
+rowExists = (layer, row) ->
+	for item in layer.children
+		if item.name == row then return item
 	return null
 
-addRow = (side = "left", row = "1") ->
-	rowParent = Layer.select("panel #{side}")
-	if rowParent.children.length == 0 then rowY = 0
-	else rowY = rowParent.children[rowParent.children.length - 1].y
+findStack = (side = "left", row = "1") ->
+	if side == "left"
+		panel = Layer.select("panels").children[0]
+	else panel = Layer.select("panels").children[1]
 	
-	rowView = new Layer
-		parent: rowParent
-		width: rowParent
-		height: 40
-		y: rowY
-		backgroundColor: "rgba(0,0,245,.2)"
-		
-	return rowView
-
-addButton = (side = "left", row = "1") ->
-	if side != "left" or side != "right" then side = "left"
-	
-	selectedRow = isRow(side, row)
-	if selectedRow == null then selectedRow = addRow(side, row)
+	selectedRow = rowExists(panel, row)
+	if selectedRow != null then return selectedRow
+	else selectedRow = getStack("horizontal", panel, row, panel.width, 40, 10)
 	
 	return selectedRow
 
+
+setHeader = (label = "Header", side = "left") ->
+	if side != "left" or side != "right" then side = "left"
+	if Layer.select("panels") == undefined then createControlPanel()
+	
+	headerView = new TextLayer
+		text: label
+		fontSize: 15
+		fontWeight: 500
+		color: "white"
+		opacity: 0.6
+		padding: { top: 12, left: 3 }
+	
+	headerView.parent = findStack(side, Utils.randomNumber())
 
 button = (label = "Button", handler = null, side = "left", row = "1", pV = 6, pH = 8) ->
 	if side != "left" or side != "right" then side = "left"
@@ -109,46 +97,19 @@ button = (label = "Button", handler = null, side = "left", row = "1", pV = 6, pH
 		"hidden": { backgroundColor: "rgba(0,0,0,0.4)" }
 	buttonView.stateSwitch("hidden")
 	
-# 	buttonView.parent = addButton(side, row)
+	buttonView.parent = findStack(side, row)
 	buttonView.on(Events.Tap, handler)
 	
 	return button
 
 
-# setTapped = (selectedLayer) ->
-# 	for item in selectedLayer.parent.children
-# 		if item == selectedLayer then nextState = "shown"
-# 		else nextState = "hidden"
-# 		
-# 		item.stateSwitch(nextState)
 
 
-stackHorizontal = () ->
-	gap = 8
-	lastLayer = @children[@children.length - 1]
-	lastLayer.x = @width + gap
-	@width += lastLayer.width + gap
-	
-	if lastLayer.height > @height then @height = lastLayer.height
 
-stackVertical = () ->
-	gap = 20
-	lastLayer = @children[@children.length - 1]
-	lastLayer.y = @height + gap
-	@height += lastLayer.height + gap
-	
-	if lastLayer.width > @width then @width = lastLayer.width
 
+setHeader("header", "left")
 button("hello", test, "left", "1")
-print panelsTemp = Layer.select("panels")
-print rowParent = panelsTemp.selectChild("panel left")
 button("hello2", test, "left", "1")
-button("hello3", test, "left", "2")
 
-
-
-
-stack = getStack("horizontal")
-box = new Layer { parent: stack }
-box = new Layer { parent: stack }
-box = new Layer { parent: stack }
+setHeader("header", "left")
+button("hello2", test, "left", "2")
