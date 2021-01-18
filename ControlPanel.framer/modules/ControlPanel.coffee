@@ -19,23 +19,27 @@ getStack = (alignment = "vertical", parent = null, sName = "some stack", sWidth 
 		parent: parent
 		width: sWidth
 		height: sHeight
-		name: sName
+		name: "#{sName}"
 		backgroundColor: "null"
+		# backgroundColor: "rgba(255,0,0,.2"
 		custom:
 			alignment: alignment
 			padding: padding
 			offset: offset
 	
 	stackView.on "change:children", ->
-		if @custom.alignment == "vertical"
-			key = { d: "y", s: "height", a: "x" }
-		else key = { d: "x", s: "width", a: "y" }
+		if @custom.alignment == "vertical" then key = { d: "y", s: "height" }
+		else if @custom.alignment == "horizontal" then key = { d: "x", s: "width" }
+		else if @custom.alignment == "horizontal-reverse" then key = { d: "x", s: "width" }
 		
+		sumPos = @custom.offset
 		for item, i in @children
-			if i == 0 then item[key.d] = @custom.offset
-			else item[key.d] = @children[i-1][key.d] + @children[i-1][key.s] + @custom.padding
-			
-# 			item[key.a] = Align.center()
+
+			if @custom.alignment == "horizontal" or @custom.alignment == "vertical" then item[key.d] = sumPos
+			else if @custom.alignment == "horizontal-reverse" then item[key.d] = @width - sumPos - item[key.s]
+
+			sumPos += item[key.s] + @custom.padding
+
 	
 	return stackView
 
@@ -62,14 +66,13 @@ rowExists = (layer, row) ->
 		if item.name == row then return item
 	return null
 
-findStack = (side = "left", row = "1") ->
-	if side == "left"
-		panel = Layer.select("panels").children[0]
-	else panel = Layer.select("panels").children[1]
-	
+findStack = (panel, row = "1") ->
+	if panel.name == "right panel" then stackAlignment = "horizontal-reverse"
+	else stackAlignment = "horizontal"
+
 	selectedRow = rowExists(panel, row)
 	if selectedRow != null then return selectedRow
-	else selectedRow = getStack("horizontal", panel, row, panel.width, 40, 10)
+	else selectedRow = getStack(stackAlignment, panel, row, panel.width, 40, 10)
 	
 	return selectedRow
 
@@ -82,25 +85,39 @@ findStack = (side = "left", row = "1") ->
 
 
 
+exports.breaker = (side = "left") ->
+	return this.header("", side)
 
 
-exports.setHeader = (label = "Header", side = "left") ->
-	if side != "left" or side != "right" then side = "left"
+exports.header = (label = "Header", side = "left") ->
 	if Layer.select("panels") == undefined then createControlPanel()
+	if side == "left" then panel = Layer.select("panels").children[0]
+	else panel = Layer.select("panels").children[1]
 	
 	headerView = new TextLayer
 		text: label
 		fontSize: 15
 		fontWeight: 500
 		color: "white"
+		# textAlign: side
 		opacity: 0.6
-		padding: { top: 12, left: 3 }
+		padding:
+			top: 12
+			left: if side == "left" then 3 else 0
+			right: if side == "right" then 3 else 0
 	
-	headerView.parent = findStack(side, Utils.randomNumber())
+	headerView.parent = findStack(panel, Utils.randomNumber())
+	return headerView
+
+getPanelFromSide = (side) ->
+	if side == "left" then return Layer.select("panels").children[0]
+	else if side == "right" then return Layer.select("panels").children[1]
+	else return null
 
 exports.button = (label = "Button", handler = null, side = "left", row = "1", pV = 6, pH = 8) ->
-	if side != "left" or side != "right" then side = "left"
 	if Layer.select("panels") == undefined then createControlPanel()
+	if side == "left" then panel = Layer.select("panels").children[0]
+	else if side == "right" then panel = Layer.select("panels").children[1]
 	
 	buttonView = new TextLayer
 		text: label
@@ -116,7 +133,7 @@ exports.button = (label = "Button", handler = null, side = "left", row = "1", pV
 		"hidden": { backgroundColor: "rgba(0,0,0,0.4)" }
 	buttonView.stateSwitch("hidden")
 	
-	buttonView.parent = findStack(side, row)
+	buttonView.parent = findStack(panel, row)
 	buttonView.on(Events.Tap, handler)
 	
 	return buttonView
