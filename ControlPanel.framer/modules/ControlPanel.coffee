@@ -91,8 +91,7 @@ exports.breaker = (side = "left") ->
 
 exports.header = (label = "Header", side = "left") ->
 	if Layer.select("panels") == undefined then createControlPanel()
-	if side == "left" then panel = Layer.select("panels").children[0]
-	else panel = Layer.select("panels").children[1]
+	if getPanelFromSide(side) == null then return null
 	
 	headerView = new TextLayer
 		text: label
@@ -106,18 +105,17 @@ exports.header = (label = "Header", side = "left") ->
 			left: if side == "left" then 3 else 0
 			right: if side == "right" then 3 else 0
 	
-	headerView.parent = findStack(panel, Utils.randomNumber())
+	headerView.parent = findStack(getPanelFromSide(side), Utils.randomNumber())
 	return headerView
 
 getPanelFromSide = (side) ->
 	if side == "left" then return Layer.select("panels").children[0]
 	else if side == "right" then return Layer.select("panels").children[1]
-	else return null
+	return null
 
 exports.button = (label = "Button", handler = null, side = "left", row = "1", pV = 6, pH = 8) ->
 	if Layer.select("panels") == undefined then createControlPanel()
-	if side == "left" then panel = Layer.select("panels").children[0]
-	else if side == "right" then panel = Layer.select("panels").children[1]
+	if getPanelFromSide(side) == null then return null
 	
 	buttonView = new TextLayer
 		text: label
@@ -133,7 +131,7 @@ exports.button = (label = "Button", handler = null, side = "left", row = "1", pV
 		"hidden": { backgroundColor: "rgba(0,0,0,0.4)" }
 	buttonView.stateSwitch("hidden")
 	
-	buttonView.parent = findStack(panel, row)
+	buttonView.parent = findStack(getPanelFromSide(side), row)
 	buttonView.on(Events.Tap, handler)
 	
 	return buttonView

@@ -12,8 +12,8 @@ panel.header("header", "left")
 panel.button("hello", test, "left", "1")
 panel.button("hello2", test, "left", "1")
 
-# panel.setHeader("header", "left")
 panel.breaker("left")
+panel.header("header", "left")
 panel.button("hello222", test, "left", "2")
 
 
