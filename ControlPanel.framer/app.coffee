@@ -21,15 +21,3 @@ panel.header("asdasdadasd", "right")
 panel.button("right1", test, "right", "2")
 panel.button("right2", test, "right", "2")
 
-
-
-# box = new Layer
-# 
-# box["x"] = Align.right(-20)
-# box["x"] = Align.left(20)
-# 
-# handler = Align.right
-# print handler
-# 
-# box["x"] = handler(-20)
-# print box.x

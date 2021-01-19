@@ -1,15 +1,6 @@
-# Add the following line to your project in Framer Studio. 
-# myModule = require "myModule"
-# Reference the contents by name, like myModule.myFunction() or myModule.myVar
-
-exports.myVar = "myVariable"
-
-exports.myFunction = ->
-	print "myFunction is running"
-
-exports.myArray = [1, 2, 3]
 
 
+panelName = ".ControlPanel"
 
 
 # Stack
@@ -51,7 +42,7 @@ getStack = (alignment = "vertical", parent = null, sName = "some stack", sWidth 
 
 createControlPanel = () ->
 	panels = new Layer
-		name: "panels"
+		name: panelName
 		width: Canvas.width
 		height: Canvas.height
 		backgroundColor: "null"
@@ -72,7 +63,7 @@ findStack = (panel, row = "1") ->
 
 	selectedRow = rowExists(panel, row)
 	if selectedRow != null then return selectedRow
-	else selectedRow = getStack(stackAlignment, panel, row, panel.width, 40, 10)
+	else selectedRow = getStack(stackAlignment, panel, row, panel.width, 40, 6)
 	
 	return selectedRow
 
@@ -90,7 +81,7 @@ exports.breaker = (side = "left") ->
 
 
 exports.header = (label = "Header", side = "left") ->
-	if Layer.select("panels") == undefined then createControlPanel()
+	if Layer.select(panelName) == undefined then createControlPanel()
 	if getPanelFromSide(side) == null then return null
 	
 	headerView = new TextLayer
@@ -109,12 +100,12 @@ exports.header = (label = "Header", side = "left") ->
 	return headerView
 
 getPanelFromSide = (side) ->
-	if side == "left" then return Layer.select("panels").children[0]
-	else if side == "right" then return Layer.select("panels").children[1]
+	if side == "left" then return Layer.select(panelName).children[0]
+	else if side == "right" then return Layer.select(panelName).children[1]
 	return null
 
 exports.button = (label = "Button", handler = null, side = "left", row = "1", pV = 6, pH = 8) ->
-	if Layer.select("panels") == undefined then createControlPanel()
+	if Layer.select(panelName) == undefined then createControlPanel()
 	if getPanelFromSide(side) == null then return null
 	
 	buttonView = new TextLayer
